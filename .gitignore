@@ -1,0 +1,14 @@
+# Binaries
+bin/
+
+# Environment files
+.env
+
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
+
+# Web dependencies & builds
+web/node_modules/
+web/dist/
