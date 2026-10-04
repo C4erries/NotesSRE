@@ -1,0 +1,434 @@
+openapi: 3.0.3
+info:
+  title: Note Service API
+  version: 1.0.0
+  description: Lightweight, 12-factor compliant REST API for Note Service (SRE Lab 1).
+servers:
+  - url: /
+    description: Current server
+
+paths:
+  /healthz:
+    get:
+      summary: Health check & readiness probe
+      description: Returns service and database health status
+      operationId: getHealthz
+      responses:
+        '200':
+          description: Service and database are healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Database or service is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/v1/categories:
+    get:
+      summary: List all categories
+      operationId: listCategories
+      responses:
+        '200':
+          description: A list of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create a category
+      operationId: createCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCategoryRequest'
+      responses:
+        '201':
+          description: Category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/categories/{id}:
+    delete:
+      summary: Delete a category
+      operationId: deleteCategory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Category UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Category deleted successfully
+        '400':
+          description: Invalid UUID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/notes:
+    get:
+      summary: List notes with optional category filter
+      operationId: listNotes
+      parameters:
+        - name: category_id
+          in: query
+          required: false
+          description: Filter notes by category UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of notes sorted by is_pinned DESC and updated_at DESC
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create a note
+      operationId: createNote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNoteRequest'
+      responses:
+        '201':
+          description: Note created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+        '400':
+          description: Invalid input or referenced category does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/notes/{id}:
+    get:
+      summary: Get note by ID
+      operationId: getNoteById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Note UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Note details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+        '400':
+          description: Invalid UUID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Note not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Update a note
+      operationId: updateNote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Note UUID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNoteRequest'
+      responses:
+        '200':
+          description: Note updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Note not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete a note
+      operationId: deleteNote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Note UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Note deleted successfully
+        '400':
+          description: Invalid UUID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Note not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    Category:
+      type: object
+      required:
+        - id
+        - title
+        - color
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Work"
+        color:
+          type: string
+          pattern: "^#[0-9A-Fa-f]{6}$"
+          example: "#FF5733"
+        created_at:
+          type: string
+          format: date-time
+
+    CreateCategoryRequest:
+      type: object
+      required:
+        - title
+        - color
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Work"
+        color:
+          type: string
+          pattern: "^#[0-9A-Fa-f]{6}$"
+          example: "#FF5733"
+
+    Note:
+      type: object
+      required:
+        - id
+        - title
+        - content
+        - is_pinned
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "d3b07384-d113-48b0-8f92-ecae7f7422f2"
+        category_id:
+          type: string
+          format: uuid
+          nullable: true
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "Meeting notes"
+        content:
+          type: string
+          example: "# Discussion points\n- Point 1\n- Point 2"
+        is_pinned:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateNoteRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "Meeting notes"
+        content:
+          type: string
+          example: "# Discussion points"
+        category_id:
+          type: string
+          format: uuid
+          nullable: true
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+        is_pinned:
+          type: boolean
+          default: false
+          example: false
+
+    UpdateNoteRequest:
+      type: object
+      required:
+        - title
+        - content
+        - is_pinned
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "Updated meeting notes"
+        content:
+          type: string
+          example: "Updated content"
+        category_id:
+          type: string
+          format: uuid
+          nullable: true
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+        is_pinned:
+          type: boolean
+          example: true
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - db
+      properties:
+        status:
+          type: string
+          example: "ok"
+        db:
+          type: string
+          example: "up"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: "Entity not found"
