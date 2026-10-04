@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { AlertCircle, FileText, Loader2, Plus, Sparkles } from 'lucide-react'
+import { AlertCircle, Loader2, Plus } from 'lucide-react'
 import { api } from './api/client'
+import { BackgroundCanvas } from './components/BackgroundCanvas'
 import { Navbar } from './components/Navbar'
 import { NoteCard } from './components/NoteCard'
 import { NoteModal } from './components/NoteModal'
 import { Sidebar } from './components/Sidebar'
+import { SunflowerMascot } from './components/SunflowerMascot'
 import type { Category, CreateNoteRequest, Note, UpdateNoteRequest } from './types'
 
 export function App() {
@@ -14,6 +16,23 @@ export function App() {
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Theme State with LocalStorage Persistence
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    const saved = localStorage.getItem('theme')
+    if (saved === 'light' || saved === 'dark') return saved
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+  })
+
+  useEffect(() => {
+    document.documentElement.classList.remove('dark', 'light')
+    document.documentElement.classList.add(theme)
+    localStorage.setItem('theme', theme)
+  }, [theme])
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+  }
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -89,7 +108,6 @@ export function App() {
     const targetNote = notes.find((n) => n.id === id)
     if (!targetNote) return
 
-    // Optimistic UI update
     setNotes((prev) =>
       prev.map((n) => (n.id === id ? { ...n, is_pinned: !currentPin } : n)),
     )
@@ -148,16 +166,12 @@ export function App() {
   const selectedCategory = selectedCategoryId ? categoryMap.get(selectedCategoryId) : null
 
   return (
-    <div className="min-h-screen bg-[#090d16] text-slate-100 relative selection:bg-indigo-500/30">
-      {/* Background Liquid Glass Glows */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/15 rounded-full blur-[128px]" />
-        <div className="absolute top-1/3 -right-40 w-96 h-96 bg-purple-600/15 rounded-full blur-[140px]" />
-        <div className="absolute -bottom-40 left-1/3 w-96 h-96 bg-blue-600/10 rounded-full blur-[130px]" />
-      </div>
+    <div className="min-h-screen relative selection:bg-amber-500/30 selection:text-amber-900 dark:selection:text-amber-200">
+      {/* Dynamic Ambient Background: Liquid Sunflower Mesh with Cursor Illumination */}
+      <BackgroundCanvas theme={theme} />
 
       <div className="relative z-10 flex flex-col min-h-screen">
-        {/* Navigation Bar */}
+        {/* Floating Glass Navigation Bar */}
         <Navbar
           search={search}
           onSearchChange={setSearch}
@@ -165,11 +179,13 @@ export function App() {
             setEditingNote(null)
             setIsModalOpen(true)
           }}
+          theme={theme}
+          onToggleTheme={toggleTheme}
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-8 flex flex-col md:flex-row gap-8">
-          {/* Sidebar */}
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex flex-col md:flex-row gap-6">
+          {/* Floating Sidebar */}
           <Sidebar
             categories={categories}
             selectedCategoryId={selectedCategoryId}
@@ -181,23 +197,23 @@ export function App() {
           />
 
           {/* Notes Grid */}
-          <section className="flex-1 flex flex-col gap-6">
+          <section className="flex-1 flex flex-col gap-5">
             {/* Section Header */}
-            <div className="flex items-center justify-between">
+            <div className="glass-panel rounded-2xl px-5 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <h2 className="text-xl font-semibold text-white tracking-tight m-0">
+                <h2 className="text-lg font-bold text-[var(--text-main)] tracking-tight m-0">
                   {selectedCategory ? selectedCategory.title : 'All Notes'}
                 </h2>
                 {selectedCategory && (
                   <span
-                    className="w-3 h-3 rounded-full"
+                    className="w-3 h-3 rounded-full shadow-sm"
                     style={{
                       backgroundColor: selectedCategory.color,
                       boxShadow: `0 0 10px ${selectedCategory.color}`,
                     }}
                   />
                 )}
-                <span className="text-xs px-2 py-0.5 rounded-full bg-white/5 border border-white/10 font-mono text-slate-400">
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-black/5 dark:bg-white/10 border border-black/5 dark:border-white/10 font-mono font-medium text-[var(--text-sub)]">
                   {filteredNotes.length} {filteredNotes.length === 1 ? 'note' : 'notes'}
                 </span>
               </div>
@@ -205,7 +221,7 @@ export function App() {
 
             {/* Error Message */}
             {error && (
-              <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm flex items-center gap-3">
+              <div className="p-4 rounded-2xl glass-panel border border-rose-500/30 text-rose-600 dark:text-rose-300 text-sm flex items-center gap-3 bg-rose-500/10">
                 <AlertCircle className="w-5 h-5 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -213,26 +229,30 @@ export function App() {
 
             {/* Loading Skeleton */}
             {loading && (
-              <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-500">
-                <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
-                <span className="text-sm">Loading notes...</span>
+              <div className="py-24 glass-panel rounded-2xl flex flex-col items-center justify-center gap-3 text-[var(--text-muted)]">
+                <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+                <span className="text-sm font-medium">Brewing notes...</span>
               </div>
             )}
 
-            {/* Empty State */}
+            {/* Empty State with Sunflower Mascot */}
             {!loading && filteredNotes.length === 0 && (
-              <div className="py-20 glass-panel rounded-2xl border border-white/5 flex flex-col items-center justify-center text-center p-8 gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 shadow-inner">
-                  {search ? <FileText className="w-6 h-6" /> : <Sparkles className="w-6 h-6 text-indigo-400" />}
+              <div className="py-20 glass-panel rounded-3xl flex flex-col items-center justify-center text-center p-8 gap-5 relative overflow-hidden">
+                <div className="relative">
+                  <div className="absolute -inset-4 bg-amber-400/25 rounded-full blur-xl animate-pulse-slow" />
+                  <SunflowerMascot size={96} animate={true} />
                 </div>
-                <div>
-                  <h3 className="text-base font-semibold text-white mb-1">
-                    {search ? 'No notes found' : 'No notes yet'}
+                <div className="max-w-md flex flex-col items-center gap-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-600 dark:text-amber-300 text-xs font-semibold">
+                    <span>🌻 Sunny says: "Plant an idea!"</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-[var(--text-main)] tracking-tight">
+                    {search ? 'No notes matched your search' : 'Your garden of ideas is waiting!'}
                   </h3>
-                  <p className="text-xs text-slate-400 max-w-sm">
+                  <p className="text-xs sm:text-sm text-[var(--text-sub)] max-w-sm leading-relaxed">
                     {search
-                      ? `No notes matching "${search}". Try refining your search query.`
-                      : 'Capture ideas, write documentation, or organize tasks with markdown notes.'}
+                      ? `We couldn't find any note matching "${search}". Try another keyword or clear filter.`
+                      : 'Capture thoughts, write Markdown documentation, or organize your daily tasks in radiant liquid glass.'}
                   </p>
                 </div>
                 {!search && (
@@ -241,16 +261,16 @@ export function App() {
                       setEditingNote(null)
                       setIsModalOpen(true)
                     }}
-                    className="glass-button-primary px-4 py-2 rounded-xl text-sm font-medium text-white flex items-center gap-2 cursor-pointer shadow-lg mt-2"
+                    className="glass-button-primary px-6 py-3 rounded-2xl text-sm font-semibold flex items-center gap-2 cursor-pointer shadow-xl"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>Create first note</span>
+                    <span>Plant your first note</span>
                   </button>
                 )}
               </div>
             )}
 
-            {/* Notes Grid Display */}
+            {/* True Liquid Glass Notes Grid */}
             {!loading && filteredNotes.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-start">
                 {filteredNotes.map((note) => (

@@ -13,18 +13,20 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build stripped static binaries
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /bin/api ./cmd/api
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /bin/migrator ./cmd/migrator
+# Build stripped static binaries with trimpath
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /bin/api ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /bin/migrator ./cmd/migrator
 
 # --- Stage 2: Runtime Backend ---
 FROM alpine:3.20 AS backend
 
 WORKDIR /app
 
-# Add unprivileged user and certificates (busybox already includes wget)
-RUN apk add --no-cache ca-certificates \
-    && addgroup -S app && adduser -S app -G app
+# Copy system certificates without bloating layers with package managers
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+
+# Create unprivileged user with built-in busybox utilities
+RUN addgroup -S app && adduser -S app -G app
 
 COPY --from=builder /bin/api /bin/api
 
@@ -39,8 +41,8 @@ FROM alpine:3.20 AS migrator
 
 WORKDIR /app
 
-RUN apk add --no-cache ca-certificates \
-    && addgroup -S app && adduser -S app -G app
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+RUN addgroup -S app && adduser -S app -G app
 
 COPY --from=builder /bin/migrator /bin/migrator
 

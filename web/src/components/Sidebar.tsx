@@ -13,14 +13,14 @@ interface Props {
 }
 
 const PRESET_COLORS = [
+  '#F59E0B', // Amber / Warm Yellow
+  '#EAB308', // Sun Yellow
   '#6366F1', // Indigo
   '#8B5CF6', // Purple
   '#EC4899', // Pink
   '#EF4444', // Red
-  '#F59E0B', // Amber
   '#10B981', // Emerald
   '#06B6D4', // Cyan
-  '#3B82F6', // Blue
 ]
 
 export function Sidebar({
@@ -52,12 +52,12 @@ export function Sidebar({
   }
 
   return (
-    <aside className="w-full md:w-64 glass-panel border border-white/[0.08] rounded-2xl p-4 flex flex-col gap-4 self-start">
+    <aside className="w-full md:w-64 glass-panel rounded-2xl p-4 flex flex-col gap-4 self-start">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold tracking-wide text-slate-300 uppercase">Categories</h2>
+        <h2 className="text-xs font-bold tracking-wider text-[var(--text-sub)] uppercase">Categories</h2>
         <button
           onClick={() => setIsCreating(!isCreating)}
-          className="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition cursor-pointer"
+          className="p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-[var(--text-sub)] hover:text-[var(--text-main)] transition cursor-pointer"
           title="Add category"
         >
           {isCreating ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
@@ -68,14 +68,14 @@ export function Sidebar({
       {isCreating && (
         <form
           onSubmit={handleSubmit}
-          className="p-3 rounded-xl bg-white/[0.04] border border-white/10 flex flex-col gap-3 animate-in fade-in duration-200"
+          className="p-3 rounded-xl bg-black/5 dark:bg-white/[0.04] border border-white/20 dark:border-white/10 flex flex-col gap-3 animate-in fade-in duration-200"
         >
           <input
             type="text"
             placeholder="Category title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-2.5 py-1.5 text-xs rounded-lg glass-input text-white"
+            className="w-full px-2.5 py-1.5 text-xs rounded-lg glass-input"
             autoFocus
           />
 
@@ -86,7 +86,7 @@ export function Sidebar({
                 key={c}
                 onClick={() => setColor(c)}
                 className={`w-5 h-5 rounded-full border transition cursor-pointer ${
-                  color === c ? 'scale-125 border-white shadow-md' : 'border-transparent opacity-70 hover:opacity-100'
+                  color === c ? 'scale-125 border-amber-500 shadow-md ring-2 ring-amber-400/40' : 'border-transparent opacity-70 hover:opacity-100'
                 }`}
                 style={{ backgroundColor: c }}
               />
@@ -97,7 +97,7 @@ export function Sidebar({
             <button
               type="button"
               onClick={() => setIsCreating(false)}
-              className="px-2.5 py-1 text-xs text-slate-400 hover:text-white transition cursor-pointer"
+              className="px-2.5 py-1 text-xs text-[var(--text-sub)] hover:text-[var(--text-main)] transition cursor-pointer"
             >
               Cancel
             </button>
@@ -118,15 +118,15 @@ export function Sidebar({
           onClick={() => onSelectCategory(null)}
           className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition cursor-pointer ${
             selectedCategoryId === null
-              ? 'bg-white/15 text-white font-medium border border-white/20 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              ? 'bg-amber-500/15 dark:bg-white/15 text-[var(--text-main)] font-semibold border border-amber-500/30 dark:border-white/20 shadow-sm'
+              : 'text-[var(--text-sub)] hover:text-[var(--text-main)] hover:bg-black/5 dark:hover:bg-white/5'
           }`}
         >
           <div className="flex items-center gap-2.5">
-            <Folder className="w-4 h-4 text-indigo-400" />
+            <Folder className="w-4 h-4 text-amber-500 dark:text-amber-400" />
             <span>All Notes</span>
           </div>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-white/5 border border-white/5 font-mono text-slate-400">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 font-mono text-[var(--text-sub)]">
             {totalNotesCount}
           </span>
         </button>
@@ -140,8 +140,8 @@ export function Sidebar({
               key={cat.id}
               className={`group flex items-center justify-between px-3 py-2 rounded-xl text-sm transition cursor-pointer ${
                 isSelected
-                  ? 'bg-white/15 text-white font-medium border border-white/20 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                  ? 'bg-amber-500/15 dark:bg-white/15 text-[var(--text-main)] font-semibold border border-amber-500/30 dark:border-white/20 shadow-sm'
+                  : 'text-[var(--text-sub)] hover:text-[var(--text-main)] hover:bg-black/5 dark:hover:bg-white/5'
               }`}
               onClick={() => onSelectCategory(cat.id)}
             >
@@ -157,7 +157,7 @@ export function Sidebar({
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-xs px-2 py-0.5 rounded-full bg-white/5 border border-white/5 font-mono text-slate-400">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 font-mono text-[var(--text-sub)]">
                   {count}
                 </span>
                 <button
@@ -168,7 +168,7 @@ export function Sidebar({
                       onDeleteCategory(cat.id)
                     }
                   }}
-                  className="opacity-0 group-hover:opacity-100 hover:text-rose-400 transition p-1 rounded"
+                  className="opacity-0 group-hover:opacity-100 hover:text-rose-500 transition p-1 rounded"
                   title="Delete category"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
