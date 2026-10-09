@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/part-of: note-service
+type: Opaque
+stringData:
+  POSTGRES_USER: "postgres"
+  POSTGRES_PASSWORD: "postgrespassword"
+  POSTGRES_DB: "notes"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: note-service-config
+  labels:
+    app.kubernetes.io/part-of: note-service
+data:
+  HTTP_PORT: "8080"
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+  SHUTDOWN_TIMEOUT: "5s"
+  DATABASE_URL: "postgres://postgres:postgrespassword@postgres:5432/notes?sslmode=disable"
+

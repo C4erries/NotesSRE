@@ -85,3 +85,48 @@ dev-frontend:
 
 clean:
 	rm -rf bin/ web/dist/
+
+# --- Kubernetes & Minikube Commands ---
+
+k8s-env:
+	@echo "Run: eval \$$(minikube docker-env)"
+
+k8s-build:
+	eval $$(minikube docker-env) && docker build -f Dockerfile.backend --target backend -t sre-backend:latest .
+	eval $$(minikube docker-env) && docker build -f Dockerfile.backend --target migrator -t sre-migrator:latest .
+	eval $$(minikube docker-env) && docker build -f web/Dockerfile -t sre-frontend:latest web/
+
+k8s-load:
+	minikube image load sre-backend:latest
+	minikube image load sre-migrator:latest
+	minikube image load sre-frontend:latest
+
+k8s-apply:
+	kubectl apply -f k8s/
+
+k8s-delete:
+	kubectl delete -f k8s/
+
+k8s-status:
+	@echo "=== Kubernetes Pods ==="
+	@kubectl get pods -o wide
+	@echo ""
+	@echo "=== Kubernetes Services ==="
+	@kubectl get svc
+	@echo ""
+	@echo "=== Kubernetes Deployments & Jobs ==="
+	@kubectl get deployments,jobs
+
+k8s-scale:
+	kubectl scale deployment backend --replicas=4
+	kubectl scale deployment frontend --replicas=3
+
+k8s-service:
+	minikube service frontend
+
+package:
+	@echo "Creating submission archive submission-k8s.zip..."
+	@python3 -c "import zipfile, os; z = zipfile.ZipFile('submission-k8s.zip', 'w', zipfile.ZIP_DEFLATED); [z.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), '.')) for root, dirs, files in os.walk('k8s') for file in files]; z.write('Отчёт.md'); z.write('Скринкаст_инструкция.md'); z.write('Dockerfile.backend'); z.write('web/Dockerfile'); z.close()"
+	@echo "Created submission-k8s.zip successfully!"
+
+
